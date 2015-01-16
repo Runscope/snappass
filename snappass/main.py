@@ -18,7 +18,9 @@ id_ = lambda: uuid.uuid4().hex
 key_regexp = re.compile("^[0-9a-f]{32}$")
 redis_safe_key = lambda key: "snappass:" + str(key)
 redis_host = os.environ.get('REDIS_HOST', 'localhost')
-redis_client = redis.StrictRedis(host=redis_host, port=6379, db=0)
+redis_port = int(os.environ.get('REDIS_PORT', 6379))
+redis_db = int(os.environ.get('REDIS_DB', 0))
+redis_client = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_db)
 
 
 def set_password(password, ttl):
