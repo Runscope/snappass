@@ -16,12 +16,6 @@ id_ = lambda: uuid.uuid4().hex
 redis_host = os.environ.get('REDIS_HOST', 'localhost')
 redis_client = redis.StrictRedis(host=redis_host, port=6379, db=0)
 
-time_conversion = {
-    'week': 604800,
-    'day': 86400,
-    'hour': 3600
-}
-
 
 def set_password(password, ttl):
     key = id_()
@@ -42,16 +36,22 @@ def clean_input():
     format data to be machine readable
     """
     if not 'password' in request.form:
+        app.logger.warning("Password not present in form")
         abort(400)
 
     if not 'ttl' in request.form:
+        app.logger.warning("TTL not present")
         abort(400)
 
-    time_period = request.form['ttl'].lower()
-    if not time_period in time_conversion:
+    time_period = request.form['ttl']
+    if not time_period.isdigit():
+        app.logger.warning("Invalid time period '{}' (not numeric)".format(time_period))
+        abort(400)
+    elif int(time_period) < 1 or int(time_period) > 604800:
+        app.logger.warning("Invalid time period '{}' (outside valid range)".format(time_period))
         abort(400)
 
-    return time_conversion[time_period], request.form['password']
+    return time_period, request.form['password']
 
 
 @app.route('/', methods=['GET'])
